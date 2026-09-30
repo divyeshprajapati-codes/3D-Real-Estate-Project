@@ -260,12 +260,57 @@ h1,h2,h3{ font-family:var(--serif); font-weight:500; line-height:1.08; }
   .tour-section{ height: 320vh; }
   .tour-sticky{ height: 100vh; height: 100dvh; }
 
-  /* Navigation on mobile */
-  .site-nav{ padding: 1rem 4vw; }
-  .nav-mark{ font-size: 1.15rem; letter-spacing: .1em; }
-  .nav-links{ gap: 1rem; }
-  .nav-links a{ font-size: .68rem; letter-spacing: .05em; }
-  .nav-links a:nth-child(3){ display: none; } /* Hide 'New Arrival' in tight mobile nav */
+  /* Floating Luxury Quick Access Bar on Mobile */
+  .site-nav{
+    position: fixed;
+    top: 0.75rem;
+    left: 3vw;
+    right: 3vw;
+    z-index: 990;
+    padding: 0.45rem 0.75rem;
+    background: rgba(20, 24, 26, 0.88);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(212, 180, 131, 0.35);
+    border-radius: 999px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    mix-blend-mode: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+  .nav-mark{
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    color: var(--brass-light);
+    padding-left: 0.3rem;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .nav-links{
+    display: flex;
+    gap: 0.2rem;
+    align-items: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .nav-links::-webkit-scrollbar{ display: none; }
+  .nav-links a{
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    padding: 0.32rem 0.55rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    background: transparent;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav-links a:hover, .nav-links a:active{
+    background: rgba(212, 180, 131, 0.22);
+    color: var(--brass-light);
+  }
 
   /* Loader on mobile */
   .loader-mark{ font-size: 1.7rem; letter-spacing: .3em; margin-bottom: 1.5rem; }

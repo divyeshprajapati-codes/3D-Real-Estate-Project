@@ -339,7 +339,18 @@ function onScroll() {
   );
   updatePreloadWindow(approxFrame, scrollDirection);
 
-  startMomentumLoop();
+  if (isMobileDevice) {
+    // Mobile / Touch devices: 0ms instant 1:1 direct tracking locked to finger swipe
+    currentProgress = targetProgress;
+    if (approxFrame !== currentTargetFrame) {
+      currentTargetFrame = approxFrame;
+      renderCurrentFrame();
+    }
+    updateOverlays(currentProgress);
+  } else {
+    // Desktop: Cinema-grade physics momentum LERP
+    startMomentumLoop();
+  }
 }
 
 window.addEventListener('scroll', onScroll, { passive: true });
