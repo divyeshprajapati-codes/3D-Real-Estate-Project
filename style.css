@@ -254,15 +254,83 @@ h1,h2,h3{ font-family:var(--serif); font-weight:500; line-height:1.08; }
   font-size:.75rem; letter-spacing:.05em;
 }
 
-/* ============ RESPONSIVE ============ */
+/* ============ RESPONSIVE & MOBILE POLISH ============ */
 @media (max-width: 780px){
-  .tour-section{ height:350vh; }
-  .overlay{ left:6vw; right:6vw; bottom:16vh; max-width:none; }
-  .details-grid{ grid-template-columns:1fr; }
-  .form-row{ flex-direction:column; }
-  .site-nav{ padding:1.2rem 5vw; }
-  .nav-links{ gap:1.2rem; }
-  .nav-links a{ font-size:.68rem; }
+  /* Container heights with dvh support */
+  .tour-section{ height: 320vh; }
+  .tour-sticky{ height: 100vh; height: 100dvh; }
+
+  /* Navigation on mobile */
+  .site-nav{ padding: 1rem 4vw; }
+  .nav-mark{ font-size: 1.15rem; letter-spacing: .1em; }
+  .nav-links{ gap: 1rem; }
+  .nav-links a{ font-size: .68rem; letter-spacing: .05em; }
+  .nav-links a:nth-child(3){ display: none; } /* Hide 'New Arrival' in tight mobile nav */
+
+  /* Loader on mobile */
+  .loader-mark{ font-size: 1.7rem; letter-spacing: .3em; margin-bottom: 1.5rem; }
+  .loader-bar-track{ width: 180px; }
+
+  /* Overlays on mobile */
+  .overlay{
+    left: 5vw; right: 5vw;
+    bottom: 11vh;
+    max-width: none;
+    transform: translateY(16px);
+  }
+  .overlay h1{ font-size: clamp(1.8rem, 7vw, 2.6rem); line-height: 1.15; }
+  .overlay h2{ font-size: clamp(1.5rem, 5.5vw, 2.1rem); line-height: 1.15; }
+  .overlay-copy{ font-size: .88rem; line-height: 1.5; margin-top: .6rem; }
+  .cta-btn{ margin-top: 1.2rem; padding: .75rem 1.4rem; font-size: .72rem; }
+
+  /* Details Section on mobile */
+  .details-section{ padding: 4.5rem 5vw; }
+  .details-grid{ grid-template-columns: 1fr; gap: 2.5rem; }
+  .details-copy h2{ font-size: clamp(1.8rem, 6vw, 2.4rem); margin-bottom: 1rem; }
+  .details-desc{ font-size: .92rem; line-height: 1.6; }
+  .stat-row{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.4rem;
+    margin-top: 1.8rem;
+  }
+  .stat-num{ font-size: 1.75rem; }
+  .stat-label{ font-size: .68rem; }
+  .details-price-card{ padding: 1.8rem; }
+  .price{ font-size: 2rem; margin: .4rem 0 1.2rem; }
+
+  /* New Arrival on mobile */
+  .arrival-section{ padding: 4.5rem 5vw; }
+  .arrival-inner{ grid-template-columns: 1fr; gap: 2rem; }
+  .arrival-copy h2{ font-size: clamp(1.7rem, 5.5vw, 2.2rem); margin-bottom: .8rem; }
+
+  /* Gallery Section on mobile */
+  .gallery-section{ padding: 4.5rem 5vw; }
+  .gallery-section h2{ font-size: clamp(1.6rem, 5.5vw, 2.2rem); margin-bottom: 2rem; }
+  .gallery-grid{
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: .75rem;
+  }
+
+  /* Contact Section on mobile */
+  .contact-section{ padding: 4.5rem 5vw; }
+  .contact-inner h2{ font-size: clamp(1.7rem, 5.5vw, 2.2rem); margin-bottom: 1.6rem; }
+  .form-row{ flex-direction: column; gap: .75rem; }
+  .contact-form input, .contact-form textarea{ padding: .8rem .9rem; font-size: .85rem; }
+
+  /* Footer on mobile */
+  .site-footer{
+    flex-direction: column;
+    gap: .6rem;
+    text-align: center;
+    padding: 1.5rem 5vw;
+  }
+}
+
+@media (max-width: 400px){
+  .nav-links{ gap: .7rem; }
+  .nav-links a{ font-size: .62rem; }
+  .gallery-grid{ grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce){

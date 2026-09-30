@@ -16,14 +16,16 @@
       - 0ms input latency, zero visual freezes.
    ========================================================================== */
 
+const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(max-width: 780px)').matches);
+
 const CONFIG = {
   FRAME_COUNT: 240,
-  INITIAL_PRELOAD_COUNT: 5,      // First 5 frames for instant boot (<350ms)
-  STRIDE_STEP: 4,                // Stride baseline (1, 5, 9, 13...) for fast global coverage
-  BUFFER_FORWARD: 40,            // High-density rolling window forward
-  BUFFER_BACKWARD: 20,           // High-density rolling window backward
-  MAX_CONCURRENT_REQUESTS: 10,   // High-throughput parallel downloads
-  LERP_EASE: 0.085,              // Cinema-grade momentum easing (0.085 = silky smooth)
+  INITIAL_PRELOAD_COUNT: 5,                  // First 5 frames for instant boot (<350ms)
+  STRIDE_STEP: isMobileDevice ? 5 : 4,       // Stride baseline for fast global coverage
+  BUFFER_FORWARD: isMobileDevice ? 25 : 40,  // High-density rolling window forward
+  BUFFER_BACKWARD: isMobileDevice ? 12 : 20, // High-density rolling window backward
+  MAX_CONCURRENT_REQUESTS: isMobileDevice ? 5 : 8, // Mobile network safe limits
+  LERP_EASE: isMobileDevice ? 0.18 : 0.085,  // Tighter easing on touch screens for 0-lag tracking
   FRAME_PATH: (i) => `assets/frames/frame_${String(i).padStart(4, '0')}.jpg`,
 };
 
@@ -56,10 +58,12 @@ const overlayData = overlays.map(el => {
   return { el, start, end, isVisible: false };
 });
 
-/* ---------- 1. Canvas Resizing with HiDPI & Cover Fitting ---------- */
+/* ---------- 1. Canvas Resizing with Hardware-Aware HiDPI Scaling ---------- */
 function resizeCanvas() {
   if (!canvas || !ctx) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // On high-density mobile displays (DPR 3+), cap DPR to 1.25 to avoid GPU memory exhaustion & lag
+  const rawDpr = window.devicePixelRatio || 1;
+  const dpr = isMobileDevice ? Math.min(rawDpr, 1.25) : Math.min(rawDpr, 2);
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
@@ -69,7 +73,7 @@ function resizeCanvas() {
 
   if (ctx.imageSmoothingEnabled !== undefined) {
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingQuality = isMobileDevice ? 'medium' : 'high';
   }
 
   lastDrawnFrame = -1;
@@ -77,6 +81,9 @@ function resizeCanvas() {
 }
 
 window.addEventListener('resize', resizeCanvas, { passive: true });
+window.addEventListener('orientationchange', () => {
+  setTimeout(resizeCanvas, 100);
+}, { passive: true });
 
 /* ---------- 2. Cover-Fit Drawing onto Canvas ---------- */
 function drawImageCover(img) {
