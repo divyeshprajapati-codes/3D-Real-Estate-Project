@@ -104,7 +104,7 @@ window.addEventListener('orientationchange', () => {
   setTimeout(resizeCanvas, 150);
 }, { passive: true });
 
-/* ---------- 3. Full-Visibility Responsive Drawing (No Side-Crop on Mobile) ---------- */
+/* ---------- 3. Full-Bleed Cinematic Responsive Drawing ---------- */
 function drawImageCover(img) {
   if (!ctx || !img || !img.complete || img.naturalWidth === 0) return;
   const vw = window.innerWidth;
@@ -115,29 +115,16 @@ function drawImageCover(img) {
   const viewRatio = vw / vh;
 
   let dw, dh, dx, dy;
-  if (viewRatio < 1.0) {
-    // Mobile Portrait: Fit 100% full width with zero side crop so full house & grounds are visible!
+  if (viewRatio > imgRatio) {
     dw = vw;
     dh = vw / imgRatio;
     dx = 0;
     dy = (vh - dh) / 2;
-
-    // Fill top/bottom letterbox cleanly
-    ctx.fillStyle = '#14181a';
-    ctx.fillRect(0, 0, vw, vh);
   } else {
-    // Desktop / Landscape: Cinematic full-bleed cover
-    if (viewRatio > imgRatio) {
-      dw = vw;
-      dh = vw / imgRatio;
-      dx = 0;
-      dy = (vh - dh) / 2;
-    } else {
-      dh = vh;
-      dw = vh * imgRatio;
-      dy = 0;
-      dx = (vw - dw) / 2;
-    }
+    dh = vh;
+    dw = vh * imgRatio;
+    dy = 0;
+    dx = (vw - dw) / 2;
   }
 
   ctx.drawImage(img, dx, dy, dw, dh);

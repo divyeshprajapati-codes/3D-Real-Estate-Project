@@ -322,21 +322,24 @@ h1,h2,h3{ font-family:var(--serif); font-weight:500; line-height:1.08; }
   .loader-mark{ font-size: 1.7rem; letter-spacing: .3em; margin-bottom: 1.5rem; }
   .loader-bar-track{ width: 180px; }
 
-  /* Full-Visibility Mobile Overlays (Floating Card Below Centered House) */
+  /* Scroll cue on mobile - hidden to prevent text collision */
+  .scroll-cue{ display: none !important; }
+
+  /* Full-Bleed Mobile Overlays (Floating Glassmorphic Bottom Card) */
   .overlay{
-    left: 4vw;
-    right: 4vw;
-    bottom: 4.5vh;
+    left: 5vw;
+    right: 5vw;
+    bottom: 6vh;
     max-width: none;
     text-align: center;
-    background: rgba(20, 24, 26, 0.82);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 1rem 1.2rem;
-    border-radius: 12px;
-    border: 1px solid rgba(212, 180, 131, 0.25);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    transform: translateY(12px);
+    background: rgba(20, 24, 26, 0.75);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    padding: 1.2rem 1.4rem;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 180, 131, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    transform: translateY(14px);
   }
   .overlay.visible{
     opacity: 1;
