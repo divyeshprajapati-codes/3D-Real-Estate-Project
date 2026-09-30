@@ -26,7 +26,11 @@ const CONFIG = {
   BUFFER_BACKWARD: isMobileDevice ? 12 : 20, // High-density rolling window backward
   MAX_CONCURRENT_REQUESTS: isMobileDevice ? 5 : 8, // Mobile network safe limits
   LERP_EASE: isMobileDevice ? 0.18 : 0.085,  // Tighter easing on touch screens for 0-lag tracking
-  FRAME_PATH: (i) => `assets/frames/frame_${String(i).padStart(4, '0')}.jpg`,
+  FRAME_PATH: (i) => {
+    const c = document.getElementById('tourCanvas');
+    const prefix = (c && c.dataset.prefix) || 'assets/frames/';
+    return `${prefix}frame_${String(i).padStart(4, '0')}.jpg`;
+  },
 };
 
 // DOM Elements
@@ -85,27 +89,38 @@ window.addEventListener('orientationchange', () => {
   setTimeout(resizeCanvas, 100);
 }, { passive: true });
 
-/* ---------- 2. Cover-Fit Drawing onto Canvas ---------- */
+/* ---------- 2. Full-Visibility Responsive Drawing (No Side-Crop on Mobile) ---------- */
 function drawImageCover(img) {
   if (!ctx || !img || !img.complete || img.naturalWidth === 0) return;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const iw = img.naturalWidth || img.width;
   const ih = img.naturalHeight || img.height;
-  const imgRatio = iw / ih;
+  const imgRatio = iw / ih; // ~1.777
   const viewRatio = vw / vh;
 
+  ctx.clearRect(0, 0, vw, vh);
+
   let dw, dh, dx, dy;
-  if (viewRatio > imgRatio) {
+  if (viewRatio < 1.0) {
+    // Mobile Portrait: Fit 100% full width with zero side crop so full house & grounds are visible!
     dw = vw;
     dh = vw / imgRatio;
     dx = 0;
     dy = (vh - dh) / 2;
   } else {
-    dh = vh;
-    dw = vh * imgRatio;
-    dy = 0;
-    dx = (vw - dw) / 2;
+    // Desktop / Landscape: Cinematic full-bleed cover
+    if (viewRatio > imgRatio) {
+      dw = vw;
+      dh = vw / imgRatio;
+      dx = 0;
+      dy = (vh - dh) / 2;
+    } else {
+      dh = vh;
+      dw = vh * imgRatio;
+      dy = 0;
+      dx = (vw - dw) / 2;
+    }
   }
 
   ctx.drawImage(img, dx, dy, dw, dh);
