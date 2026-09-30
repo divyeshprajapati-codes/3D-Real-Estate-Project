@@ -16,16 +16,18 @@
       - 0ms input latency, zero visual freezes.
    ========================================================================== */
 
-const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(max-width: 780px)').matches);
+const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
+  (window.matchMedia && window.matchMedia('(max-width: 820px)').matches) ||
+  ('ontouchstart' in window) || 
+  (navigator.maxTouchPoints > 0);
 
 const CONFIG = {
   FRAME_COUNT: 240,
-  INITIAL_PRELOAD_COUNT: 5,                  // First 5 frames for instant boot (<350ms)
-  STRIDE_STEP: isMobileDevice ? 5 : 4,       // Stride baseline for fast global coverage
-  BUFFER_FORWARD: isMobileDevice ? 25 : 40,  // High-density rolling window forward
-  BUFFER_BACKWARD: isMobileDevice ? 12 : 20, // High-density rolling window backward
-  MAX_CONCURRENT_REQUESTS: isMobileDevice ? 5 : 8, // Mobile network safe limits
-  LERP_EASE: isMobileDevice ? 0.18 : 0.085,  // Tighter easing on touch screens for 0-lag tracking
+  INITIAL_PRELOAD_COUNT: 6,
+  STRIDE_STEP: isMobileDevice ? 4 : 4,
+  BUFFER_FORWARD: isMobileDevice ? 20 : 35,
+  BUFFER_BACKWARD: isMobileDevice ? 10 : 20,
+  MAX_CONCURRENT_REQUESTS: isMobileDevice ? 4 : 8,
   FRAME_PATH: (i) => {
     const c = document.getElementById('tourCanvas');
     const prefix = (c && c.dataset.prefix) || 'assets/frames/';
@@ -43,18 +45,20 @@ const tourSection = document.getElementById('tour');
 const overlays = Array.from(document.querySelectorAll('.overlay'));
 const scrollCue = document.getElementById('scrollCue');
 
-// Frame Cache: Map<frameIndex, { img: HTMLImageElement, status: 'LOADING'|'LOADED'|'ERROR' }>
+// Frame Cache
 const frameCache = new Map();
 let activeRequests = 0;
-let requestQueue = []; // Priority queue of frame indices
+let requestQueue = [];
 
 let targetProgress = 0;
 let currentProgress = 0;
 let currentTargetFrame = 1;
 let lastDrawnFrame = -1;
 let lastScrollY = window.scrollY || window.pageYOffset || 0;
-let scrollDirection = 1; // 1 = forward (down), -1 = backward (up)
-let isAnimating = false;
+let scrollDirection = 1;
+let isTouching = false;
+let tourOffsetTop = 0;
+let tourScrollableHeight = 1;
 
 // Cache overlay dataset ranges
 const overlayData = overlays.map(el => {
@@ -62,11 +66,22 @@ const overlayData = overlays.map(el => {
   return { el, start, end, isVisible: false };
 });
 
-/* ---------- 1. Canvas Resizing with Hardware-Aware HiDPI Scaling ---------- */
+/* ---------- 1. Fast Geometry Caching (Zero Reflow during Scroll) ---------- */
+function updateTourGeometry() {
+  if (!tourSection) return;
+  const rect = tourSection.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  tourOffsetTop = rect.top + scrollY;
+  tourScrollableHeight = Math.max(1, tourSection.offsetHeight - window.innerHeight);
+}
+
+/* ---------- 2. Canvas Resizing with Hardware-Aware HiDPI Scaling ---------- */
 function resizeCanvas() {
   if (!canvas || !ctx) return;
-  // On high-density mobile displays (DPR 3+), cap DPR to 1.25 to avoid GPU memory exhaustion & lag
+  updateTourGeometry();
+
   const rawDpr = window.devicePixelRatio || 1;
+  // Capping DPR on mobile keeps GPU memory light and eliminates rendering micro-stutter
   const dpr = isMobileDevice ? Math.min(rawDpr, 1.25) : Math.min(rawDpr, 2);
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -86,10 +101,10 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas, { passive: true });
 window.addEventListener('orientationchange', () => {
-  setTimeout(resizeCanvas, 100);
+  setTimeout(resizeCanvas, 150);
 }, { passive: true });
 
-/* ---------- 2. Full-Visibility Responsive Drawing (No Side-Crop on Mobile) ---------- */
+/* ---------- 3. Full-Visibility Responsive Drawing (No Side-Crop on Mobile) ---------- */
 function drawImageCover(img) {
   if (!ctx || !img || !img.complete || img.naturalWidth === 0) return;
   const vw = window.innerWidth;
@@ -99,8 +114,6 @@ function drawImageCover(img) {
   const imgRatio = iw / ih; // ~1.777
   const viewRatio = vw / vh;
 
-  ctx.clearRect(0, 0, vw, vh);
-
   let dw, dh, dx, dy;
   if (viewRatio < 1.0) {
     // Mobile Portrait: Fit 100% full width with zero side crop so full house & grounds are visible!
@@ -108,6 +121,10 @@ function drawImageCover(img) {
     dh = vw / imgRatio;
     dx = 0;
     dy = (vh - dh) / 2;
+
+    // Fill top/bottom letterbox cleanly
+    ctx.fillStyle = '#14181a';
+    ctx.fillRect(0, 0, vw, vh);
   } else {
     // Desktop / Landscape: Cinematic full-bleed cover
     if (viewRatio > imgRatio) {
@@ -126,14 +143,13 @@ function drawImageCover(img) {
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-/* ---------- 3. Instant Fallback: Find Nearest Loaded Frame ---------- */
+/* ---------- 4. Instant Fallback: Find Nearest Loaded Frame ---------- */
 function findNearestLoadedFrame(target) {
   const exact = frameCache.get(target);
   if (exact && exact.status === 'LOADED') {
     return { img: exact.img, index: target };
   }
 
-  // Search outward checking scroll direction first
   for (let offset = 1; offset < CONFIG.FRAME_COUNT; offset++) {
     const fwd = target + (scrollDirection * offset);
     if (fwd >= 1 && fwd <= CONFIG.FRAME_COUNT) {
@@ -150,7 +166,7 @@ function findNearestLoadedFrame(target) {
   return null;
 }
 
-/* ---------- 4. Render Current Target Frame ---------- */
+/* ---------- 5. Render Current Target Frame ---------- */
 function renderCurrentFrame() {
   const bestFrame = findNearestLoadedFrame(currentTargetFrame);
   if (bestFrame && bestFrame.img) {
@@ -161,7 +177,7 @@ function renderCurrentFrame() {
   }
 }
 
-/* ---------- 5. Overlays and UI Update ---------- */
+/* ---------- 6. Overlays and UI Update ---------- */
 function updateOverlays(progress) {
   for (let i = 0; i < overlayData.length; i++) {
     const item = overlayData[i];
@@ -178,19 +194,24 @@ function updateOverlays(progress) {
   }
 }
 
-/* ---------- 6. Physics-Based Smooth Momentum LERP Loop ---------- */
-function momentumLoop() {
+/* ---------- 7. Ultra-Smooth 120Hz/60Hz Hardware Animation Loop ---------- */
+function animationLoop() {
+  // Directly calculate progress on every RAF tick to guarantee continuous 120fps/60fps tracking
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  targetProgress = Math.min(1, Math.max(0, (scrollY - tourOffsetTop) / tourScrollableHeight));
+
   const diff = targetProgress - currentProgress;
 
-  if (Math.abs(diff) > 0.00008) {
-    currentProgress += diff * CONFIG.LERP_EASE;
-    isAnimating = true;
+  // On touch / mobile devices, responsive direct tracking eliminates double-momentum lag
+  // On PC mouse wheels, smooth LERP blends discrete wheel ticks into silky fluid motion
+  const ease = isMobileDevice ? (isTouching ? 0.65 : 0.35) : 0.085;
+
+  if (Math.abs(diff) > 0.00005) {
+    currentProgress += diff * ease;
   } else {
     currentProgress = targetProgress;
-    isAnimating = false;
   }
 
-  // Calculate smoothly interpolated frame
   const frame = Math.min(
     CONFIG.FRAME_COUNT,
     Math.max(1, Math.round(currentProgress * (CONFIG.FRAME_COUNT - 1)) + 1)
@@ -203,17 +224,7 @@ function momentumLoop() {
 
   updateOverlays(currentProgress);
 
-  // Keep RAF loop alive while momentum is active or constantly for fluid interaction
-  if (isAnimating) {
-    requestAnimationFrame(momentumLoop);
-  }
-}
-
-function startMomentumLoop() {
-  if (!isAnimating) {
-    isAnimating = true;
-    requestAnimationFrame(momentumLoop);
-  }
+  requestAnimationFrame(animationLoop);
 }
 
 /* ---------- 7. Asynchronous Frame Fetcher with Off-Thread Decoding ---------- */
@@ -230,7 +241,6 @@ function requestFrame(index) {
     entry.status = 'LOADED';
     activeRequests--;
 
-    // If this newly loaded frame is target or closer to target, redraw immediately
     if (
       currentTargetFrame === index ||
       lastDrawnFrame === -1 ||
@@ -311,7 +321,7 @@ function updatePreloadWindow(target, direction) {
     }
   }
 
-  // Priority 3: Stride Keyframes (every 4th frame) across entire tour
+  // Priority 3: Stride Keyframes (every 4th/5th frame) across entire tour
   for (let idx = 1; idx <= CONFIG.FRAME_COUNT; idx += CONFIG.STRIDE_STEP) {
     if (!frameCache.has(idx)) {
       const dist = Math.abs(idx - target);
@@ -330,45 +340,51 @@ function updatePreloadWindow(target, direction) {
   queueFrames(scoredItems);
 }
 
-/* ---------- 9. Scroll Progress Calculation & Event Handler ---------- */
-function getRawScrollProgress() {
-  if (!tourSection) return 0;
-  const rect = tourSection.getBoundingClientRect();
-  const scrollableDistance = tourSection.offsetHeight - window.innerHeight;
-  if (scrollableDistance <= 0) return 0;
+/* ---------- 9. Touch & Scroll Event Handlers ---------- */
+window.addEventListener('touchstart', () => {
+  isTouching = true;
+}, { passive: true });
 
-  const progress = -rect.top / scrollableDistance;
-  return Math.min(1, Math.max(0, progress));
-}
+window.addEventListener('touchend', () => {
+  isTouching = false;
+}, { passive: true });
 
+window.addEventListener('touchcancel', () => {
+  isTouching = false;
+}, { passive: true });
+
+let preloadThrottleTimeout = null;
 function onScroll() {
   const currentY = window.scrollY || window.pageYOffset || 0;
   scrollDirection = currentY >= lastScrollY ? 1 : -1;
   lastScrollY = currentY;
 
-  targetProgress = getRawScrollProgress();
-
-  const approxFrame = Math.min(
-    CONFIG.FRAME_COUNT,
-    Math.max(1, Math.round(targetProgress * (CONFIG.FRAME_COUNT - 1)) + 1)
-  );
-  updatePreloadWindow(approxFrame, scrollDirection);
-
-  if (isMobileDevice) {
-    // Mobile / Touch devices: 0ms instant 1:1 direct tracking locked to finger swipe
-    currentProgress = targetProgress;
-    if (approxFrame !== currentTargetFrame) {
-      currentTargetFrame = approxFrame;
-      renderCurrentFrame();
-    }
-    updateOverlays(currentProgress);
-  } else {
-    // Desktop: Cinema-grade physics momentum LERP
-    startMomentumLoop();
+  // Throttle preload window updates slightly on mobile to prioritize main thread rendering
+  if (!preloadThrottleTimeout) {
+    preloadThrottleTimeout = setTimeout(() => {
+      preloadThrottleTimeout = null;
+      const approxFrame = Math.min(
+        CONFIG.FRAME_COUNT,
+        Math.max(1, Math.round(targetProgress * (CONFIG.FRAME_COUNT - 1)) + 1)
+      );
+      updatePreloadWindow(approxFrame, scrollDirection);
+    }, isMobileDevice ? 50 : 20);
   }
 }
 
 window.addEventListener('scroll', onScroll, { passive: true });
+
+// Smooth navigation scroll handler (replaces global CSS smooth scroll to prevent mobile touch lag)
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const targetId = this.getAttribute('href').slice(1);
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      e.preventDefault();
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
 
 /* ---------- 10. Fast Initial Boot with Luxury Loader Pacing ---------- */
 (async function init() {
@@ -428,7 +444,9 @@ window.addEventListener('scroll', onScroll, { passive: true });
     ]);
 
     // Initial draw
-    targetProgress = currentProgress = getRawScrollProgress();
+    updateTourGeometry();
+    const initScrollY = window.scrollY || window.pageYOffset || 0;
+    targetProgress = currentProgress = Math.min(1, Math.max(0, (initScrollY - tourOffsetTop) / tourScrollableHeight));
     currentTargetFrame = Math.min(
       CONFIG.FRAME_COUNT,
       Math.max(1, Math.round(targetProgress * (CONFIG.FRAME_COUNT - 1)) + 1)
@@ -448,6 +466,9 @@ window.addEventListener('scroll', onScroll, { passive: true });
         if (loader) loader.classList.add('hidden');
       }, 350);
     }, 600);
+
+    // Launch continuous hardware animation loop at 120Hz/60Hz
+    requestAnimationFrame(animationLoop);
 
     // Launch background preload stream
     updatePreloadWindow(currentTargetFrame, 1);
