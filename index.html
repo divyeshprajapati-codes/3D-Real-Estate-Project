@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurelia Estate — Scroll Through the Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============ LOADER ============ -->
+  <div id="loader">
+    <div class="loader-inner">
+      <span class="loader-mark">AURELIA</span>
+      <div class="loader-bar-track"><div class="loader-bar-fill" id="loaderFill"></div></div>
+      <span class="loader-pct" id="loaderPct">0%</span>
+    </div>
+  </div>
+
+  <!-- ============ NAV ============ -->
+  <header class="site-nav">
+    <div class="nav-mark">Aurelia</div>
+    <nav class="nav-links">
+      <a href="#tour">Tour</a>
+      <a href="#details">Details</a>
+      <a href="#arrivals">New Arrival</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#contact">Enquire</a>
+    </nav>
+  </header>
+
+  <!-- ============ SCROLL-DRIVEN 3D TOUR ============ -->
+  <section id="tour" class="tour-section">
+    <div class="tour-sticky">
+      <canvas id="tourCanvas"></canvas>
+
+      <!-- scroll cue -->
+      <div class="scroll-cue" id="scrollCue">
+        <span>Scroll to walk through</span>
+        <div class="scroll-cue-line"></div>
+      </div>
+
+      <!-- text overlays, faded in/out by scroll % via JS -->
+      <div class="overlay" data-range="0,0.16">
+        <p class="eyebrow">Aurelia Estate</p>
+        <h1>A Bungalow Built<br>Around Light</h1>
+      </div>
+
+      <div class="overlay" data-range="0.30,0.55">
+        <p class="eyebrow">The Grounds</p>
+        <h2>Descending Toward Home</h2>
+        <p class="overlay-copy">Palm-lined pathways, manicured lawns, and an infinity pool catching the last of the golden hour.</p>
+      </div>
+
+      <div class="overlay" data-range="0.70,1.0">
+        <p class="eyebrow">Arrival</p>
+        <h2>Where Every Story Starts</h2>
+        <p class="overlay-copy">A private estate designed to be seen from above and lived in from within.</p>
+        <a href="#details" class="cta-btn">See Full Details</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROPERTY DETAILS ============ -->
+  <section id="details" class="details-section">
+    <div class="details-grid">
+      <div class="details-copy">
+        <p class="eyebrow">The Property</p>
+        <h2>Aurelia Estate</h2>
+        <p class="details-desc">
+          A single-story luxury bungalow set on manicured grounds, designed for
+          quiet mornings and long evenings outdoors. Every room opens toward light.
+        </p>
+        <div class="stat-row">
+          <div class="stat"><span class="stat-num">4</span><span class="stat-label">Bedrooms</span></div>
+          <div class="stat"><span class="stat-num">3.5</span><span class="stat-label">Bathrooms</span></div>
+          <div class="stat"><span class="stat-num">3,400</span><span class="stat-label">Sq Ft</span></div>
+          <div class="stat"><span class="stat-num">0.6</span><span class="stat-label">Acres</span></div>
+        </div>
+      </div>
+      <div class="details-price-card">
+        <p class="eyebrow">Offered At</p>
+        <p class="price">$2,450,000</p>
+        <a href="#contact" class="cta-btn cta-btn-solid">Schedule a Viewing</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NEW ARRIVAL (links to sub-project) ============ -->
+  <section id="arrivals" class="arrival-section">
+    <div class="arrival-inner">
+      <div class="arrival-copy">
+        <p class="eyebrow">Just Listed</p>
+        <h2>Explore The Arrival</h2>
+        <p class="details-desc">A newly added property with its own full scroll-driven 3D tour — a motor-court entrance leading into a warm, timber-clad modern bungalow.</p>
+        <a href="projects/arrival/index.html" class="cta-btn cta-btn-solid">Explore This Property</a>
+      </div>
+      <a href="projects/arrival/index.html" class="arrival-thumb">
+        <img src="projects/arrival/assets/frames/frame_0030.jpg" alt="The Arrival — new listing preview">
+        <span class="arrival-thumb-tag">3D Scroll Tour →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ GALLERY ============ -->
+  <section id="gallery" class="gallery-section">
+    <p class="eyebrow center">Gallery</p>
+    <h2 class="center">Every Room, Frame by Frame</h2>
+    <div class="gallery-grid" id="galleryGrid"><!-- filled by JS from tour frames --></div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" class="contact-section">
+    <div class="contact-inner">
+      <p class="eyebrow">Enquire</p>
+      <h2>Schedule a Private Viewing</h2>
+      <form class="contact-form" onsubmit="event.preventDefault(); this.reset(); alert('Thank you — we will be in touch shortly.');">
+        <div class="form-row">
+          <input type="text" placeholder="Full name" required>
+          <input type="email" placeholder="Email address" required>
+        </div>
+        <div class="form-row">
+          <input type="tel" placeholder="Phone number">
+          <input type="text" placeholder="Preferred date">
+        </div>
+        <textarea placeholder="Anything you'd like us to know?" rows="4"></textarea>
+        <button type="submit" class="cta-btn cta-btn-solid">Request Viewing</button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <span>© 2026 Aurelia Estate</span>
+    <span>Vadodara, Gujarat</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

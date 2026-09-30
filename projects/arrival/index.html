@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Arrival — New Listing | Aurelia Estates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+  <!-- ============ LOADER ============ -->
+  <div id="loader">
+    <div class="loader-inner">
+      <span class="loader-mark">THE ARRIVAL</span>
+      <div class="loader-bar-track"><div class="loader-bar-fill" id="loaderFill"></div></div>
+      <span class="loader-pct" id="loaderPct">0%</span>
+    </div>
+  </div>
+
+  <!-- ============ NAV ============ -->
+  <header class="site-nav">
+    <a href="../../index.html" class="nav-mark">← Aurelia Estates</a>
+    <nav class="nav-links">
+      <a href="#tour">Tour</a>
+      <a href="#details">Details</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#contact">Enquire</a>
+    </nav>
+  </header>
+
+  <!-- ============ SCROLL-DRIVEN TOUR ============ -->
+  <section id="tour" class="tour-section">
+    <div class="tour-sticky">
+      <canvas id="tourCanvas"></canvas>
+
+      <div class="scroll-cue" id="scrollCue">
+        <span>Scroll to arrive</span>
+        <div class="scroll-cue-line"></div>
+      </div>
+
+      <div class="overlay" data-range="0,0.14">
+        <p class="eyebrow">New Listing</p>
+        <h1>The Arrival</h1>
+      </div>
+
+      <div class="overlay" data-range="0.28,0.52">
+        <p class="eyebrow">The Approach</p>
+        <h2>A First Impression, Engineered</h2>
+        <p class="overlay-copy">Sculpted hedges, warm wood cladding, and a motor court built to make an entrance.</p>
+      </div>
+
+      <div class="overlay" data-range="0.65,1.0">
+        <p class="eyebrow">The Threshold</p>
+        <h2>Home, Wide Open</h2>
+        <p class="overlay-copy">Glass doors part to reveal the living space beyond — the tour continues inside.</p>
+        <a href="#details" class="cta-btn">See Full Details</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DETAILS ============ -->
+  <section id="details" class="details-section">
+    <div class="details-grid">
+      <div class="details-copy">
+        <p class="eyebrow">New Arrival</p>
+        <h2>The Arrival Residence</h2>
+        <p class="details-desc">
+          A newly listed modern bungalow with a motor-court entrance, water feature,
+          and warm timber facade — just added to the collection.
+        </p>
+        <div class="stat-row">
+          <div class="stat"><span class="stat-num">5</span><span class="stat-label">Bedrooms</span></div>
+          <div class="stat"><span class="stat-num">4</span><span class="stat-label">Bathrooms</span></div>
+          <div class="stat"><span class="stat-num">4,100</span><span class="stat-label">Sq Ft</span></div>
+          <div class="stat"><span class="stat-num">0.5</span><span class="stat-label">Acres</span></div>
+        </div>
+      </div>
+      <div class="details-price-card">
+        <p class="eyebrow">Offered At</p>
+        <p class="price">$2,890,000</p>
+        <a href="#contact" class="cta-btn cta-btn-solid">Schedule a Viewing</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GALLERY ============ -->
+  <section id="gallery" class="gallery-section">
+    <p class="eyebrow center">Gallery</p>
+    <h2 class="center">The Arrival, Frame by Frame</h2>
+    <div class="gallery-grid" id="galleryGrid"><!-- filled by script.js from tour frames --></div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" class="contact-section">
+    <div class="contact-inner">
+      <p class="eyebrow">Enquire</p>
+      <h2>Schedule a Private Viewing</h2>
+      <form class="contact-form" onsubmit="event.preventDefault(); this.reset(); alert('Thank you — we will be in touch shortly.');">
+        <div class="form-row">
+          <input type="text" placeholder="Full name" required>
+          <input type="email" placeholder="Email address" required>
+        </div>
+        <div class="form-row">
+          <input type="tel" placeholder="Phone number">
+          <input type="text" placeholder="Preferred date">
+        </div>
+        <textarea placeholder="Anything you'd like us to know?" rows="4"></textarea>
+        <button type="submit" class="cta-btn cta-btn-solid">Request Viewing</button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <span>© 2026 Aurelia Estates</span>
+    <a href="../../index.html">Back to all properties</a>
+  </footer>
+
+  <script src="../../script.js"></script>
+</body>
+</html>
